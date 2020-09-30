@@ -15,7 +15,8 @@
 
 #' Simulator of adaptive evolution.
 #' @aliases simevol simevol-package
-
+#' @keywords internal
+"_PACKAGE"
 
 library(deSolve);
 ##library(envstocker);
@@ -484,6 +485,10 @@ comwin <- function(make_win=0){
     
 }
 
+##' function for evolutionary simulation.
+##' @title function for evolutionary simulation
+##' @param z : traits
+##' @author Hiroshi C. Ito
 #' @export
 simevol <- function(z,en,fitness=NULL,mutate=NULL,pop_dynamics=NULL,set_parms=NULL,
                   edge_die=1e-6,
