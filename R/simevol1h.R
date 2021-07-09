@@ -1022,19 +1022,15 @@ simevol <- function(phe=a$phe,en=a$en,## state values
         options(scipen=100);
         write(c(1,0),file=a$file_data_pid,append=FALSE,ncolumns=2);
         options(scipen=0);
-        ##cat("\n",file=a$file_data_pid,append=TRUE);
-
-        
         
       comwin();   
     
-##print(file_command);    
+
     if(a$edim>0)a$traj$e<<-c(a$traj$e,en[(nspe+1):length(en)]);
     
     if(file.exists(file_data))file.remove(file_data);
 
         .simevol_func$output(a$timen,phe,n);
-        ##.simevol_func$output_popu(a$timen,phe,n);
     cat(a$sparam$outcount,file=a$sparam$file_outcount);
     a$sparam$outcount<<-a$sparam$outcount+1;
     
@@ -1091,31 +1087,18 @@ simevol <- function(phe=a$phe,en=a$en,## state values
          options(scipen=100);
         write(c(inv$phe$pid+1,inv$pid_par+1),file=a$file_data_pid,append=TRUE,ncolumns=2);
          options(scipen=0);
-        ##cat("\n",file=a$file_data_pid,append=TRUE);
-        ##a$tree_phe <<- add_phenotype(a$tree_phe,inv$phe);
-        
         
         if(length(par_alive)>0){
-            ##print(inv$phe$pid);
-            ##print(state_new$phe$pid);
-            
-            ##print(par_alive);
-            
             phe_par=geti(state_new$phe,par_alive);
-            ##print(phe_par);
             a$tree <<- c(a$tree,list(add_phenotype(phe_par,inv$phe)));
-            ##write(c(inv$phe$pid+1,inv$pid_par+1),file=a$file_data_pid,append=TRUE,ncolumns=2);cat("\n",file=fname,append=TRUE);
       
         }
         else{
             for(i in 1:length(a$tree)){
                 buf=a$tree[[i]];
-                ##cat("pars:",buf$pid);
-                ##cat("inv:",inv$phe$pid,"inv_par:",inv$pid_par,"\n");
                 if(sum(buf$pid[length(buf$pid)]==inv$pid_par)>0){
-                    ##cat("connect\n");
                     a$tree[[i]]<<-add_phenotype(a$tree[[i]],inv$phe);
-              ##      write(c(inv$phe$pid+1,inv$pid_par+1),file=a$file_data_pid,append=TRUE,ncolumns=2);cat("\n",file=fname,append=TRUE);
+
                     
                     
                 }
