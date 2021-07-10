@@ -60,8 +60,12 @@ max_fitness <- function(phe,en){
 
 #' @export
 entercom <- function(){
+    ##cat("enter command:");
+    ##coms=scan("stdin",character(),n=1);
     coms=readline("enter command: ");
+    ##print(coms);
     if(coms!=""){
+        ##print(try(eval(parse(text=coms),envir=.GlobalEnv )));
         print(try(eval(parse(text=coms),envir=.GlobalEnv)));
         entercom();
         }
@@ -72,6 +76,9 @@ entercom <- function(){
 }
 
 
+##mydir=".simevol/";
+##file_outcount=paste0(mydir,"outcount.dat");
+##file_command=".simevol/command";
 #' @export
 plot_var<-function(xid=1,yid=2){
     a$pparam$xid<<-xid;
@@ -184,8 +191,8 @@ pngout<-function(dev_id=as.numeric(dev.list()[length(dev.list())]),plotfile="tes
 calc_fitness_land <- function(phe,en,xid=1,yid=2,xmin=-1.0,xmax=1.0,ymin=-1.0,ymax=1.0,ndiv=64){
     n=en[1:length(phe[[1]])];
    
-        xx=seq(xmin,xmax,,ndiv);
-    yy=seq(ymin,ymax,,ndiv); 
+        xx=seq(xmin,xmax,,ndiv);  ##とり得る形質値xのセット
+    yy=seq(ymin,ymax,,ndiv);  ##とり得る形質値yのセット
     
     land=matrix(ndiv*ndiv,nrow=ndiv,ncol=ndiv)*0.0;
 
@@ -535,7 +542,7 @@ remove_extinct <- function(en,phe,edge_extinct=NULL){
 plot_init <- function(reset_win=TRUE){
 
     if(reset_win){
-    X11(width=5,height=5,title=paste("runid:",a$runid,"    dev:",(cur.dev()+1)));
+    X11(width=5,height=5,title=paste("runid:",a$runid,"  ",a$runname,"    dev:",(cur.dev()+1)));
     a$winid[1] <<-cur.dev();
     }
     else{
@@ -559,7 +566,9 @@ plot_init <- function(reset_win=TRUE){
     if(a$show_subwin==TRUE){
         if(reset_win){
         ##X11(width=ncols*3.0,height=nrows*4);
-        X11(width=7,height=nrows*4,title=paste("runid:",a$runid,"    dev:",(cur.dev()+1)));
+            X11(width=7,height=nrows*4,title=paste("runid:",a$runid,"  ",a$runname,"    dev:",(cur.dev()+1)));
+   
+
             a$winid[2]<<-cur.dev();
         }
         else{
@@ -906,6 +915,7 @@ simevol <- function(phe=a$phe,en=a$en,## state values
                     file_data_pid="tree_test_pid.dat",
                     continue=FALSE,
                     runid=1,
+                    runname="",
                     mydir=".simevol/",
                     fitness_contour=TRUE,## parameters for plotting
                     fitness_contour_phe=NULL,
@@ -1017,20 +1027,25 @@ simevol <- function(phe=a$phe,en=a$en,## state values
         file_data_pid=file_data_pid,
 
         runid=runid,
+        runname=runname,
         show_subwin=show_subwin
         );
         options(scipen=100);
         write(c(1,0),file=a$file_data_pid,append=FALSE,ncolumns=2);
         options(scipen=0);
+        ##cat("\n",file=a$file_data_pid,append=TRUE);
+
+        
         
       comwin();   
     
-
+##print(file_command);    
     if(a$edim>0)a$traj$e<<-c(a$traj$e,en[(nspe+1):length(en)]);
     
     if(file.exists(file_data))file.remove(file_data);
 
         .simevol_func$output(a$timen,phe,n);
+        ##.simevol_func$output_popu(a$timen,phe,n);
     cat(a$sparam$outcount,file=a$sparam$file_outcount);
     a$sparam$outcount<<-a$sparam$outcount+1;
     
@@ -1087,18 +1102,31 @@ simevol <- function(phe=a$phe,en=a$en,## state values
          options(scipen=100);
         write(c(inv$phe$pid+1,inv$pid_par+1),file=a$file_data_pid,append=TRUE,ncolumns=2);
          options(scipen=0);
+        ##cat("\n",file=a$file_data_pid,append=TRUE);
+        ##a$tree_phe <<- add_phenotype(a$tree_phe,inv$phe);
+        
         
         if(length(par_alive)>0){
+            ##print(inv$phe$pid);
+            ##print(state_new$phe$pid);
+            
+            ##print(par_alive);
+            
             phe_par=geti(state_new$phe,par_alive);
+            ##print(phe_par);
             a$tree <<- c(a$tree,list(add_phenotype(phe_par,inv$phe)));
+            ##write(c(inv$phe$pid+1,inv$pid_par+1),file=a$file_data_pid,append=TRUE,ncolumns=2);cat("\n",file=fname,append=TRUE);
       
         }
         else{
             for(i in 1:length(a$tree)){
                 buf=a$tree[[i]];
+                ##cat("pars:",buf$pid);
+                ##cat("inv:",inv$phe$pid,"inv_par:",inv$pid_par,"\n");
                 if(sum(buf$pid[length(buf$pid)]==inv$pid_par)>0){
+                    ##cat("connect\n");
                     a$tree[[i]]<<-add_phenotype(a$tree[[i]],inv$phe);
-
+              ##      write(c(inv$phe$pid+1,inv$pid_par+1),file=a$file_data_pid,append=TRUE,ncolumns=2);cat("\n",file=fname,append=TRUE);
                     
                     
                 }
@@ -1141,6 +1169,8 @@ simevol <- function(phe=a$phe,en=a$en,## state values
 
         
         .simevol_func$output(a$timen,phe,n);
+      ##  .simevol_func$output_popu(a$file_data_pid);
+     ##   .simevol_func$output_popu(a$timen,phe,n);
         
         cat(a$sparam$outcount,file=a$sparam$file_outcount);
         a$sparam$outcount<<-a$sparam$outcount+1;
@@ -1149,7 +1179,7 @@ simevol <- function(phe=a$phe,en=a$en,## state values
         if(a$ninv%%a$sparam$out_interval==0){
             a$traj$phe<<-add_phenotype(a$traj$phe,phe);
             .simevol_func$output_tree(a$file_data_tree);
-
+            ##.simevol_func$output_popu(a$file_data_pid);
             
     if(a$edim>0)a$traj$e<<-rbind(a$traj$e,en[(nspe+1):length(en)]);
             a$traj$n<<-c(a$traj$n,n);
@@ -1158,8 +1188,10 @@ simevol <- function(phe=a$phe,en=a$en,## state values
             
 }
     
-    if(a$ninv%%a$sparam$show_interval==0){
-    cat("runid:",runid,"time:",a$timen, " residents:",nspe, " invasion:", a$ninv,"amp:",a$sparam$amp_invf,"fit_over:",length(a$sparam$fit_over),"irad:",state_new$irad,"\n");
+        if(a$ninv%%a$sparam$show_interval==0){
+            runname1="";
+        if(runname!="")runname1=paste0("\"",runname,"\"");
+            cat("runid:",runid,runname1,"time:",a$timen, " residents:",nspe, " invasion:", a$ninv,"amp:",a$sparam$amp_invf,"fit_over:",length(a$sparam$fit_over),"irad:",state_new$irad,"\n");
 
     .simevol_func$plot_func();    
     
