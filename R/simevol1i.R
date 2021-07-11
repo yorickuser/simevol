@@ -1105,6 +1105,7 @@ simevol <- function(phe=a$phe,en=a$en,## state values
     for(t in 1:tmax){
         if(class(.simevol_func$halt_func)=="function").simevol_func$halt_func();
         if(a$sparam$flag_halt==T)break;
+
         if(file.exists(file_command)){
             source(file_command);
             file.remove(file_command);
@@ -1166,7 +1167,9 @@ simevol <- function(phe=a$phe,en=a$en,## state values
             }
         }
         
-        if(a$sparam$flag_halt==T)break;
+   
+
+        
         phe=state_new$phe;
         nspe=length(phe[[1]]);
         en=state_new$en;
@@ -1185,12 +1188,12 @@ simevol <- function(phe=a$phe,en=a$en,## state values
 
         
         .simevol_func$output(a$timen,phe,n);
-        
+                
         cat(a$sparam$outcount,file=a$sparam$file_outcount);
         a$sparam$outcount<<-a$sparam$outcount+1;
 
         
-        if(a$ninv%%a$sparam$out_interval==0){
+        if((a$sparam$flag_halt==T)||(a$ninv%%a$sparam$out_interval==0)){
             a$traj$phe<<-add_phenotype(a$traj$phe,phe);
             .simevol_func$output_tree(a$file_data_tree);
         
@@ -1202,7 +1205,7 @@ simevol <- function(phe=a$phe,en=a$en,## state values
             
         }
     
-        if(a$ninv%%a$sparam$show_interval==0){
+        if((a$sparam$flag_halt==T)||(a$ninv%%a$sparam$show_interval==0)){
             runname1="";
             if(runname!="")runname1=paste0("\"",runname,"\"");
             cat("runid:",runid,runname1,"time:",a$timen, " residents:",nspe, " invasion:", a$ninv,"amp:",a$sparam$amp_invf,"fit_over:",length(a$sparam$fit_over),"irad:",state_new$irad,"\n");
@@ -1210,6 +1213,8 @@ simevol <- function(phe=a$phe,en=a$en,## state values
             .simevol_func$plot_func();    
             
         }
+        
+##        if(a$sparam$flag_halt==T)break;
     }
     
 }
