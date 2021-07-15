@@ -19,7 +19,6 @@
 "_PACKAGE"
 
 
-
 library(deSolve);
 ##library(envstocker);
 
@@ -111,6 +110,7 @@ invader <- function(phe=a$phe,en=a$en,mutate=.simevol_func$mutate,timen=0.0,amp_
     mutant=c(mutant,list(t=timen,pid=a$ninv+1));
     return(list(phe=mutant,n=a$sparam$n_mutant_init,f=fb,timen=timen,pid_par=phe_par$pid));
 }
+
 
 
 #' @export
@@ -450,15 +450,16 @@ pparam0=list(
     ylim=c(NULL),
     win_style=NULL,
     fcon=list(levels=c(0.0,0.1),col=c("red","gray"),lwd=1,lty=c(1,1)),
-    resi=list(col="black",bg="green",cex=0.5,pch=21,amp=0.2,ampn=0.01,bg2="red",bgid=-1),
-    traj=list(col="blue",cex=0.3,pch=17,every=10,lwd=0.5),
+    resi=list(col="black",bg="green",cex=0.4,pch=21,amp=1.0,ampn=10,bg2="red",bgid=-1),
+    traj=list(col="blue",cex=1.0,pch=17,every=10,lwd=0.5),
     env=list(col="orange",lwd=1),
     plot_mask=NULL,
     trait_names=NULL,
     nv_names=NULL,
     fitness_contour=TRUE,
     fitness_contour_phe=NULL,
-    pal=(rainbow(130))[1:100]
+    pal=(rev(rainbow(100,end=0.7))),
+    palfunc=NULL
 );
 
 #' @export
@@ -492,8 +493,18 @@ plot_lim <- function(xid,yid,p){
         
     }
     
-    plot(xp,yp,type="n",,cex.lab=p$cex.lab,xlim=p$xlim,ylim=p$ylim,xlab=xlab,ylab=ylab);
+
+        plot(xp,yp,type="n",,cex.lab=p$cex.lab,xlim=p$xlim,ylim=p$ylim,xlab=xlab,ylab=ylab);
+}
+
+#' @export
+plot_lim_sub <- function(xid,p){
+    xp=c(min(a$traj$phe[[xid]]),max(a$traj$phe[[xid]]));
+    yp=c(min(a$traj$t),max(a$traj$t));
+    xlab=p$trait_names[xid];
+    ylab=p$time_lab;
     
+    plot(xp,yp,type="n",,cex.lab=p$cex.lab,xlim=p$sub_xlim[[xid]],ylim=p$sub_ylim[[xid]],xlab=xlab,ylab=ylab);
 }
 
 
@@ -597,7 +608,7 @@ plot_1dim <- function(p){
 
 
 #' @export
-plot_func0 <- function(traj_line=FALSE){
+plot_func0 <- function(traj_line=TRUE){
     phe=a$phe;
     en=a$en;
     n=a$n;
@@ -614,27 +625,39 @@ plot_func0 <- function(traj_line=FALSE){
     env_names=p$env_names;
     plot_mask=p$plot_mask;
 
-    if(p$resi$bgid>-1){
-        bgid=p$resi$bgid;
-        npal=length(p$pal);
-        if(bgid==0){
-            bgval=n;
-        }else{
-            bgval=phe[[bgid]];
+    dev.hold();
+    if(class(.simevol_func$palfunc)=="function"){
+            npal=length(p$pal);
+            bgval=.simevol_func$palfunc(phe,en);
+        
+            ##cmax=max(bgval)+1e-10;
+            ##cmin=min(bgval)-1e-10;
+            ##cid=as.integer((npal-1)*(bgval-cmin)/(cmax-cmin))+1;
+            cid=as.integer((npal-1)*bgval)+1;
+            p$resi$bg=p$pal[cid];
+    }else{
+        if(p$resi$bgid>-1){
+            bgid=p$resi$bgid;
+            npal=length(p$pal);
+            if(bgid==0){
+                bgval=n;
+            }else{
+                bgval=phe[[bgid]];
+            }
+            cmax=max(bgval)+1e-10;
+            cmin=min(bgval)-1e-10;
+            cid=as.integer((npal-1)*(bgval-cmin)/(cmax-cmin))+1;
+            p$resi$bg=p$pal[cid];
         }
-        cmax=max(bgval)+1e-10;
-        cmin=min(bgval)-1e-10;
-        cid=as.integer((npal-1)*(bgval-cmin)/(cmax-cmin))+1;
-        p$resi$bg=p$pal[cid];
     }
+        
     
     if(length(trait_names)==0)trait_names=names(phe);
     if((length(env_names)==0)&&(edim>0))env_names=paste0("Env",seq(edim));
         
     if((length(phe)-2)==1){
         plot_1dim(p);
-    }
-    else{        
+    }else{        
        plot_lim(xid,yid,p);
        if((xid>0)&&(yid>0)&&p$fitness_contour){
            ranx=max(1.2*max(abs(traj$phe[[xid]])),0.001);        
@@ -652,11 +675,15 @@ plot_func0 <- function(traj_line=FALSE){
         if((xid>0)&&(yid>0)&&p$fitness_contour)plot_fitness_contour(land,p);
         plot_phe(xid,yid,p);
     }
+
+    dev.flush();
     
     if(a$show_subwin==TRUE){
-    dev.set(a$winid[2]);
+        dev.set(a$winid[2]);
+        dev.hold();
     for(i in 1:(length(phe)-2)){
-        plot_lim(i,0,p);
+        ##plot_lim(i,0,p);
+        plot_lim_sub(i,p);
         if(traj_line==TRUE){
             if((length(phe)-2)==1)tree1=adj_tree(a$tree);
                        plot_traj_line(tree1,i,0,p);
@@ -674,7 +701,9 @@ plot_func0 <- function(traj_line=FALSE){
             plot(traj$e[,i],traj$te,col=p$env$col,lwd=p$env$lwd,type="l",xlab=env_names[i],ylab="Time",cex.lab=p$cex.lab);  
         }
     }
+        dev.flush();
     }
+
     
 }
 
@@ -827,19 +856,46 @@ setrange <-function(x0=NULL,x1=NULL,y0=NULL,y1=NULL){
 }
 
 #' @export
+setrangex <-function(x0=NULL,x1=NULL){
+    a$pparam$xlim<<-c(x0,x1);
+    .simevol_func$plot_func();
+}
+
+#' @export
+setrangey <-function(y0=NULL,y1=NULL){
+    a$pparam$ylim<<-c(y0,y1);
+    .simevol_func$plot_func();
+}
+
+#' @export
 setr <- function(x0=NULL,x1=NULL,y0=NULL,y1=NULL,runid=1){
    for(i in 1:length(runid))cat(sprintf("setrange(%f,%f,%f,%f)",x0,x1,y0,y1),file=paste0(file_command,runid[i],".R"));
 }
 
 #' @export
 setrx <- function(x0=NULL,x1=NULL,runid=1){
-   for(i in 1:length(runid))cat(sprintf("setrange(%f,%f,,)",x0,x1),file=paste0(file_command,runid[i],".R"));
+   for(i in 1:length(runid))cat(sprintf("setrangex(%f,%f)",x0,x1),file=paste0(file_command,runid[i],".R"));
 }
 
 #' @export
 setry <- function(y0=NULL,y1=NULL,runid=1){
-   for(i in 1:length(runid))cat(sprintf("setrange(,,%f,%f)",y0,y1),file=paste0(file_command,runid[i],".R"));
+   for(i in 1:length(runid))cat(sprintf("setrangey(%f,%f)",y0,y1),file=paste0(file_command,runid[i],".R"));
 }
+
+
+#' @export
+resetrange_sub<-function(id){
+    a$pparam$sub_xlim[id]<<- list(NULL);
+    a$pparam$sub_ylim[id]<<- list(NULL);
+    .simevol_func$plot_func();
+}
+
+#' @export
+setrange_sub <-function(x0=NULL,x1=NULL,id=1){
+    a$pparam$sub_xlim[[id]]<<-c(x0,x1);
+    .simevol_func$plot_func();
+}
+
 
 #' @export
 cur.dev <- function(){
@@ -848,41 +904,48 @@ cur.dev <- function(){
 return(v);
 }
 
-#' @export
-cbgid <- function(bgid=-2){
-    if(bgid>-2)a$pparam$resi$bgid <<- bgid;
-}
 
 #' @export
-cpal <- function(palid=0,bgid=-2){   
-    if(class(palid)=="character"){
-        a$pparam$resi$bgid <<- -1;
-        a$pparam$resi$bg <<- palid;
-        cat("\n bg color: ",a$pparam$resi$bg,"\n");
-        
-    }else{
-        palname=c("1: ranbow", "2: heat", "3: terrain", "4: topo", "5: cm");
-        if(palid==0){
-            cat("\nPalettes \n", paste(palname,collapse="\n "), "\n");
+cpal <- function(palid=0,bgid=-2){
+        if(class(palid)=="character"){
+            a$pparam$resi$bgid <<- -1;
+            a$pparam$resi$bg <<- palid;
+            cat("\n bg color: ",a$pparam$resi$bg,"\n");
+            
         }else{
-            if(bgid==-2){
-                if(a$pparam$resi$bgid==-1)a$pparam$resi$bgid<<-1;
+            palname=c("1: ranbow", "2: heat.colors", "3: terrain.colors", "4: topo.colors", "5: cm.colors");
+##            palname.squash=c('6: rainbow2', '7: jet', '8: grayscale', '9: heat', '10: coolheat', '11: blueorange', '12: bluered', '13: darkbluered');
+##            palname=c(palname,palname.squash);
+            
+            
+            if((palid==0)&&(bgid==-2)){
+            cat("\nPalettes \n", paste(palname,collapse="\n "), "\n");
             }else{
-                a$pparam$resi$bgid<<-bgid;
-            }
+                if(bgid==-2){
+                    if(a$pparam$resi$bgid==-1)a$pparam$resi$bgid<<-1;
+                }else{
+                    a$pparam$resi$bgid<<-bgid;
+                }
                
-                
-                if(palid==1)a$pparam$pal <<- (rainbow(130))[1:100];
+                if(palid==1)a$pparam$pal <<- rev(rainbow(100,end=0.7));
                 if(palid==2)a$pparam$pal <<- heat.colors(100);
                 if(palid==3)a$pparam$pal <<- terrain.colors(100);
                 if(palid==4)a$pparam$pal <<- topo.colors(100);
                 if(palid==5)a$pparam$pal <<- cm.colors(100);
-                cat("\n Pallete: ",palname[palid],"\n");
-            }
-    }
- 
-    
+                ##if(palid==6)a$pparam$pal <<- rainbow2(100);
+                ##if(palid==7)a$pparam$pal <<- jet(100);
+                ##if(palid==8)a$pparam$pal <<- grayscale(100);
+                ##if(palid==9)a$pparam$pal <<- heat(100);
+                ##if(palid==10)a$pparam$pal <<- coolheat(100);
+                ##if(palid==11)a$pparam$pal <<- blueorange(100);
+                ##if(palid==12)a$pparam$pal <<- bluered(100);
+                ##if(palid==13)a$pparam$pal <<- darkbluered(100);
+                cat("\n Pallete: ",palname[palid], " bgid:",a$pparam$resi$bgid,"\n");
+            }    
+        }
 }
+
+        
 #' @export
 pngout<-function(dev_id=as.numeric(dev.list()[length(dev.list())]),plotfile="testout",density=150,geometry=600,outeps=FALSE,prefix="./",show=TRUE,outpng=TRUE){
     
@@ -943,8 +1006,8 @@ simevol <- function(phe=a$phe,en=a$en,## state values
                     out_interval=10,
                     show_interval=10,
                     file_data="test.dat",
-                    file_data_tree="tree_test.dat",
-                    file_data_pid="tree_test_pid.dat",
+                    file_data_tree="test_tree.dat",
+                    file_data_pid="test_pid.dat",
                     continue=FALSE,
                     runid=1,
                     runname="",
@@ -957,6 +1020,8 @@ simevol <- function(phe=a$phe,en=a$en,## state values
                     trait_names=NULL,
                     env_names=NULL,
                     bgid=-1,
+                    palid=1,
+                    palfunc=NULL,
                     pparam=pparam0,
                     amp_invf=0.1,## parameters for mutant invasion
                     level_invf=0.02,
@@ -990,7 +1055,7 @@ simevol <- function(phe=a$phe,en=a$en,## state values
         edim=length(en)-nspe;
         if(length(trait_names)==0)trait_names=names(phe);
         
-        .simevol_func <<- list(fitness=fitness,pop_dynamics=pop_dynamics,mutate=mutate,set_parms=set_parms,plot_func=plot_func,output=output,output_tree=output_tree,halt_func=halt_func);
+        .simevol_func <<- list(fitness=fitness,pop_dynamics=pop_dynamics,mutate=mutate,set_parms=set_parms,plot_func=plot_func,output=output,output_tree=output_tree,halt_func=halt_func,palfunc=palfunc);
         
      
         pparam$plot_mask=plot_mask;
@@ -998,9 +1063,9 @@ simevol <- function(phe=a$phe,en=a$en,## state values
         pparam$env_names=env_names;
         pparam$fitness_contour=fitness_contour;
         pparam$fitness_contour_phe=fitness_contour_phe;
-
         pparam$resi$bgid=bgid;
 
+        pparam=c(pparam,list(sub_xlim=vector("list",length=pdim),sub_ylim=vector("list",length=pdim)));
 
         
         traj=list(phe=phe,n=c(n),t=c(rep(0.0,nspe)),e=c(NULL),te=c(0.0));
@@ -1063,7 +1128,9 @@ simevol <- function(phe=a$phe,en=a$en,## state values
         options(scipen=0);
         ##cat("\n",file=a$file_data_pid,append=TRUE);
 
-      
+
+        cpal(palid);
+        
         comwin();   
         ##print(file_command);
         
@@ -1107,7 +1174,8 @@ simevol <- function(phe=a$phe,en=a$en,## state values
         if(a$sparam$flag_halt==T)break;
 
         if(file.exists(file_command)){
-            source(file_command);
+            ##source(file_command);
+            sys.source(file_command,envir=.GlobalEnv);
             file.remove(file_command);
         }
         
