@@ -676,6 +676,7 @@ plot_func0 <- function(traj_line=TRUE){
         plot_phe(xid,yid,p);
     }
 
+        
     dev.flush();
     
     if(a$show_subwin==TRUE){
