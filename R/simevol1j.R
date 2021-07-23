@@ -1281,7 +1281,6 @@ simevol <- function(phe=a$phe,en=a$en,## state values
             .simevol_func$plot_func();    
             
         }
-        
 ##        if(a$sparam$flag_halt==T)break;
     }
     
