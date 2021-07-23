@@ -1073,7 +1073,7 @@ simevol <- function(phe=a$phe,en=a$en,## state values
         phe=c(phe,list(t=0.0,pid=0));
         tree=list(phe);
         tree_phe=c(phe,list(pid_par=-1));
-        ##tree_phe=phe;
+
         
         sparam=list(m_rate=m_rate,
                     m_sd=m_sd,
