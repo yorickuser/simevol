@@ -246,9 +246,8 @@ simpop <- function(phe1=a$phe,en1=a$en,pop_dynamics=.simevol_func$pop_dynamics,s
 
             if(length(which(res$die==nspe0))>0){
                 cat("inveder extinct!!\n");
-                ##if(a$sparam$error_stop==TRUE)
-               
-                    ##a$sparam$flag_halt<<-T;
+                ##if(a$sparam$error_stop==TRUE);                
+                ##a$sparam$flag_halt<<-T;
                 }
                         
 
