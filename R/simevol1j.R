@@ -1132,7 +1132,7 @@ simevol <- function(phe=a$phe,en=a$en,## state values
         cpal(palid);
         
         comwin();   
-        ##print(file_command);
+
         
         if(a$edim>0)a$traj$e<<-c(a$traj$e,en[(nspe+1):length(en)]);
         
