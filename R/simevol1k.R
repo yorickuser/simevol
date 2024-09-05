@@ -71,7 +71,8 @@ pop_dynamics0 <- function(t,n,parms){
 
 #' @export
 mutate0 <- function(phe){
-    mut=phe;
+    ##mut=phe;
+    mut=phe[1:(length(phe)-2)];
     for(i in 1:(length(phe)-2))mut[[i]]=phe[[i]]+rnorm(1,mean=0.0,sd=a$sparam$m_sd);
     return(mut);
 }
@@ -1038,7 +1039,7 @@ simevol <- function(phe=a$phe,en=a$en,## state values
                   ){
 
 
-    ##    .ee.append("adsim",environment())
+       ##.ee.append("simevol",environment())
  
     if(continue==FALSE){ 
 
@@ -1069,9 +1070,13 @@ simevol <- function(phe=a$phe,en=a$en,## state values
 
         
         traj=list(phe=phe,n=c(n),t=c(rep(0.0,nspe)),e=c(NULL),te=c(0.0));
-        phe=c(phe,list(t=0.0,pid=0));
+        ##phe=c(phe,list(t=0.0,pid=0));
+        ##tree=list(phe);
+        ##tree_phe=c(phe,list(pid_par=-1));
+
+        phe=c(phe,list(t=rep(0.0,nspe),pid=(seq(nspe)-1)));
         tree=list(phe);
-        tree_phe=c(phe,list(pid_par=-1));
+        tree_phe=c(phe,list(pid_par=rep(-1,nspe)));
 
         
         sparam=list(m_rate=m_rate,
