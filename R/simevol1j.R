@@ -71,8 +71,7 @@ pop_dynamics0 <- function(t,n,parms){
 
 #' @export
 mutate0 <- function(phe){
-    ##mut=phe;
-    mut=phe[1:(length(phe)-2)];
+    mut=phe;
     for(i in 1:(length(phe)-2))mut[[i]]=phe[[i]]+rnorm(1,mean=0.0,sd=a$sparam$m_sd);
     return(mut);
 }
@@ -507,7 +506,7 @@ plot_lim_sub <- function(xid,p){
     plot(xp,yp,type="n",,cex.lab=p$cex.lab,xlim=p$sub_xlim[[xid]],ylim=p$sub_ylim[[xid]],xlab=xlab,ylab=ylab);
 }
 
-#' @export
+
 adj_tree <- function(tree){
     for(i in 1:length(tree)){
         b=tree[[i]];
@@ -1039,7 +1038,7 @@ simevol <- function(phe=a$phe,en=a$en,## state values
                   ){
 
 
-       ##.ee.append("simevol",environment())
+    ##    .ee.append("adsim",environment())
  
     if(continue==FALSE){ 
 
@@ -1070,13 +1069,9 @@ simevol <- function(phe=a$phe,en=a$en,## state values
 
         
         traj=list(phe=phe,n=c(n),t=c(rep(0.0,nspe)),e=c(NULL),te=c(0.0));
-        ##phe=c(phe,list(t=0.0,pid=0));
-        ##tree=list(phe);
-        ##tree_phe=c(phe,list(pid_par=-1));
-
-        phe=c(phe,list(t=rep(0.0,nspe),pid=(seq(nspe)-1)));
+        phe=c(phe,list(t=0.0,pid=0));
         tree=list(phe);
-        tree_phe=c(phe,list(pid_par=rep(-1,nspe)));
+        tree_phe=c(phe,list(pid_par=-1));
 
         
         sparam=list(m_rate=m_rate,
